@@ -140,7 +140,7 @@ void EuclidLoop() {
     sw_timer = millis();
     sw = 0;
     disp_refresh = debug;
-    Serial.print(F("$1"));
+    Serial.print(F("button"));
   }
   if (sw == 0) {
     disp_refresh = debug;
@@ -167,7 +167,7 @@ void EuclidLoop() {
     oldPosition = newPosition;
     disp_refresh = debug;//Enable while debugging.
     encD = 1;
-    Serial.print(F("$1"));
+    Serial.print(F("<<< encoder <<<"));
   } else {
     encD = 0;
   }
@@ -177,7 +177,7 @@ void EuclidLoop() {
     oldPosition = newPosition;
     disp_refresh = debug;//Enable while debugging.
     encU = 1;
-    Serial.print(F("$1"));
+    Serial.print(F(">>> encoder >>>"));
   } else {
     encU = 0;
   }
@@ -429,24 +429,24 @@ void OLED_display_Euclid() {
     display.print(select_ch + 1);
   }
   else if (select_ch == 6) { //random mode
-    display.print(F("$1"));
+    display.print(F("R"));
   }
   display.setCursor(120, 9);
   if (select_ch != 6) { // not random mode
-    display.print(F("$1"));
+    display.print(F("H"));
   }
   else if (select_ch == 6) { //random mode
-    display.print(F("$1"));
+    display.print(F("O"));
   }
   display.setCursor(120, 18);
   if (select_ch != 6) { // not random mode
-    display.print(F("$1"));
+    display.print(F("O"));
     display.setCursor(0, 36);
-    display.print(F("$1"));
+    display.print(F("L"));
     display.setCursor(0, 45);
-    display.print(F("$1"));
+    display.print(F("M"));
     display.setCursor(0, 54);
-    display.print(F("$1"));
+    display.print(F("R"));
   }
 
 
