@@ -1,44 +1,10 @@
-int debug = 0; // 1 =on 0 =off
-//INTERNAL CLOCK Setup (not yet implemented)
-unsigned long startMillis;  //some global variables available anywhere in the program
-unsigned long currentMillis;
-const unsigned long period = 1000;  //the value is a number of milliseconds
-const byte ledPin = 4;    //using the built in LED
-int tempo = 120;
-int lasttempo = 120;
-int ledState = LOW;
-long previousMillis = 0;
-long interval = 1000;
+#pragma once
 
 //EEPROM
 #include <EEPROM.h>
 
-//Encoder setting
-#define  ENCODER_OPTIMIZE_INTERRUPTS //countermeasure of encoder noise
-#include <Encoder.h>
+#include "Shared.h"
 
-//Oled setting
-#include<Wire.h>
-#include<Adafruit_GFX.h>
-#include<Adafruit_SSD1306.h>
-
-#define OLED_ADDRESS 0x3C
-#define SCREEN_WIDTH 128
-#define SCREEN_HEIGHT 64
-#define ENCODER_COUNT_PER_CLICK 4
-
-Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
-
-//rotery encoder
-Encoder myEnc(3, 2);//use 3pin 2pin
-int oldPosition  = -999;
-int newPosition = -999;
-int i = 0;
-
-//push button
-bool sw = 0;//push button
-bool old_sw;//countermeasure of sw chattering
-unsigned long sw_timer = 0;//countermeasure of sw chattering
 
 //each channel param
 byte hits[6] = { 4, 4, 5, 3, 2, 16};//each channel hits
@@ -113,23 +79,27 @@ byte bar_max[4] = {2, 4, 8, 16} ;//selectable bar
 byte bar_select = 1;//selected bar
 byte step_cnt = 0;//count 16 steps, the bar will increase by 1.
 
-void setup() {
+void BPM ();
+void OLED_display_Euclid();
+void Random_change();
+
+void EuclidSetup() {
 
   // test display
   //Serial.begin(57600);
    
     // SSD1306_SWITCHCAPVCC = generate display voltage from 3.3V internally
  //   if(!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) {
-  //  Serial.println(("SSD1306 allocation failed"));
+  //  Serial.print(("SSD1306 allocation failed"));
   //  for(;;); // Don't proceed, loop forever
    // }
   
   // OLED setting
   delay(1000); // Screen needs a sec to initialize
-  display.begin(SSD1306_SWITCHCAPVCC, 0x3C);
+  display.begin();
   display.setTextSize(1);
   display.setTextColor(WHITE);
-  OLED_display();
+  OLED_display_Euclid();
 
   //pin mode setting
   pinMode(11, INPUT_PULLUP); //RST
@@ -155,7 +125,7 @@ void setup() {
 
 }
 
-void loop() {
+void EuclidLoop() {
 
   old_trg_in = trg_in;
   old_rst_in = rst_in;
@@ -170,7 +140,7 @@ void loop() {
     sw_timer = millis();
     sw = 0;
     disp_refresh = debug;
-    Serial.println("button");
+    Serial.print(F("$1"));
   }
   if (sw == 0) {
     disp_refresh = debug;
@@ -197,7 +167,7 @@ void loop() {
     oldPosition = newPosition;
     disp_refresh = debug;//Enable while debugging.
     encD = 1;
-    Serial.println("<<< encoder <<<");
+    Serial.print(F("$1"));
   } else {
     encD = 0;
   }
@@ -207,7 +177,7 @@ void loop() {
     oldPosition = newPosition;
     disp_refresh = debug;//Enable while debugging.
     encU = 1;
-    Serial.println(">>> encoder >>>");
+    Serial.print(F("$1"));
   } else {
     encU = 0;
   }
@@ -425,7 +395,7 @@ void loop() {
   }
   
   if (disp_refresh == 1) {
-    OLED_display();//refresh display
+    OLED_display_Euclid();//refresh display
     disp_refresh = 0;
   }
 }
@@ -450,7 +420,7 @@ void Random_change() { // when random mode and full of bar_now ,
   }
 }
 
-void OLED_display() {
+void OLED_display_Euclid() {
   display.clearDisplay();
   //-------------------------euclidean circle display------------------
   //draw setting menu
@@ -459,24 +429,24 @@ void OLED_display() {
     display.print(select_ch + 1);
   }
   else if (select_ch == 6) { //random mode
-    display.print("R");
+    display.print(F("$1"));
   }
   display.setCursor(120, 9);
   if (select_ch != 6) { // not random mode
-    display.print("H");
+    display.print(F("$1"));
   }
   else if (select_ch == 6) { //random mode
-    display.print("O");
+    display.print(F("$1"));
   }
   display.setCursor(120, 18);
   if (select_ch != 6) { // not random mode
-    display.print("O");
+    display.print(F("$1"));
     display.setCursor(0, 36);
-    display.print("L");
+    display.print(F("$1"));
     display.setCursor(0, 45);
-    display.print("M");
+    display.print(F("$1"));
     display.setCursor(0, 54);
-    display.print("R");
+    display.print(F("$1"));
   }
 
 

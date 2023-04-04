@@ -1,34 +1,15 @@
-int debug = 0; // 1 =on 0 =off
-
-//INTERNAL CLOCK Setup (not yet implemented)
-unsigned long startMillis;  //some global variables available anywhere in the program
-unsigned long currentMillis;
-const unsigned long period = 1000;  //the value is a number of milliseconds
-const byte ledPin = 4;    //using the built in LED
-
-int tempo = 120;
-int lasttempo = 120;
-
-int ledState = LOW;
-long previousMillis = 0;
-
-long interval = 1000;
+#pragma once
 
 //EEPROM
 #include <EEPROM.h>
 
-//Encoder setting
-#define  ENCODER_OPTIMIZE_INTERRUPTS //エンコーダノイズ対策
-#include <Encoder.h>
+#include "Shared.h"
 
-//OLED settings
-#include<Wire.h>
-#include<Adafruit_GFX.h>
-#include<Adafruit_SSD1306.h>
+void OLED_display_Gate();
+void save_data();
+void change_step();
+void fillin_step();
 
-#define OLED_ADDRESS 0x3C
-#define SCREEN_WIDTH 128//128が推奨表示
-#define SCREEN_HEIGHT 64//64が推奨表示 
 
 //----------------変数の定義---------------------------
 byte step_count = 0; //clock in毎に1繰り上がり。17になると1に戻る。増えた時にOUTPUTをONする。
@@ -60,10 +41,6 @@ byte CH6_output = 0 ;
 byte CH6_mute = 0 ;//0=ミュートしない、1=ミュートする
 
 
-//ロータリーエンコーダ設定
-Encoder myEnc(3, 2);//ロータリーエンコーダライブラリ用
-int oldPosition  = -999;
-int newPosition = -999;
 byte enc = 96; //選択中のエンコーダ。初回起動時はMANUAL表示
 byte enc_max = 105; //マニュアルモードではmax=99(16*6ch+option3+mute6)。AUTOでは11(MANUAL,genre,fillin,repeat,sw+mute6)
 unsigned int enc_bit = 0x00;//
@@ -73,8 +50,6 @@ byte button = 0;//0=OFF,1=ON
 byte old_button = 0;//チャタリング対策
 byte button_on = 0;//チャタリング判定後のボタン状態。0=OFF,1=ON
 
-// ディスプレイ変数の宣言
-Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
 
 //オプション
 byte mode = 0;//0=MANUAL,1=AUTO
@@ -84,7 +59,7 @@ byte save = 0;//1でseve実行しすぐに0に戻る
 byte genre = 0; //パターンジャンル0=techno,1=dub,2=house,3=half
 byte repeat = 2; //0=4times,1=8times,2=16times,3=32times,4=eternal
 byte fillin = 1; //0=OFF,1=ON
-byte sw = 0;//0=2,1=4,2=8,3=16,4=eternal
+//byte sw = 0;//0=2,1=4,2=8,3=16,4=eternal
 
 //AUTOモード
 int repeat_max = 4;//repeat_doneこの値に達したらフィルイン
@@ -214,14 +189,13 @@ const static word bnk4_ptn[8][12]PROGMEM = {
   }
 };
 
-
-void setup() {
+void GateSetup() {
 
 
   delay(1000); // Screen needs a sec to initialize
 
   // ディスプレイの初期化
-  display.begin(SSD1306_SWITCHCAPVCC, 0x3C);
+  display.begin();
 
   //pin mode setting
   pinMode(11, INPUT_PULLUP); //RST
@@ -252,10 +226,10 @@ void setup() {
   //開発用通信設定
   //  Serial.begin(9600);
 
-  OLED_display();
+  OLED_display_Gate();
 }
 
-void loop() {
+void GateLoop() {
 
   old_clock_in = clock_in;
   old_button = button;
@@ -558,726 +532,726 @@ void loop() {
   //--------------OLED出力----------------------------------
   //注意：OLEDの更新はクロック入ったタイミングのみ。Arduinoのビジー状態を避けるため。
   if (old_clock_in == 0 && clock_in == 1) {
-    OLED_display();
+    OLED_display_Gate();
   }
 
   //  //開発用
   //    Serial.print(repeat_done);
-  //    Serial.print(",");
+  //    Serial.print(F("$1"));
   //    Serial.print(sw_max);
-  //    Serial.println("");
+  //    Serial.print("");
 }
 //--------------OLED出力----------------------------------
-void OLED_display() {
+void OLED_display_Gate() {
   display.clearDisplay();  // ディスプレイをクリア
   display.setTextSize(1);  // 出力する文字の大きさ
   display.setTextColor(WHITE);  // 出力する文字の色
 
   //CH1表示
   display.setCursor(0, 0);  // 文字の一番端の位置
-  display.print("CH1");
+  display.print(F("$1"));
 
   display.setCursor(30, 0);
   if (CH1_mute == 0) {
     if (bitRead(ch1_step, 15 ) == 1) {
-      display.print("*");
+      display.print(F("$1"));
     }
     else {
-      display.print("_");
+      display.print(F("$1"));
     }
 
     if (bitRead(ch1_step, 14 ) == 1) {
-      display.print("*");
+      display.print(F("$1"));
     }
     else {
-      display.print("_");
+      display.print(F("$1"));
     }
 
     if (bitRead(ch1_step, 13 ) == 1) {
-      display.print("*");
+      display.print(F("$1"));
     }
     else {
-      display.print("_");
+      display.print(F("$1"));
     }
 
     if (bitRead(ch1_step, 12 ) == 1) {
-      display.print("*");
+      display.print(F("$1"));
     }
     else {
-      display.print("_");
+      display.print(F("$1"));
     }
 
     if (bitRead(ch1_step, 11 ) == 1) {
-      display.print("*");
+      display.print(F("$1"));
     }
     else {
-      display.print("_");
+      display.print(F("$1"));
     }
 
     if (bitRead(ch1_step, 10 ) == 1) {
-      display.print("*");
+      display.print(F("$1"));
     }
     else {
-      display.print("_");
+      display.print(F("$1"));
     }
 
     if (bitRead(ch1_step, 9 ) == 1) {
-      display.print("*");
+      display.print(F("$1"));
     }
     else {
-      display.print("_");
+      display.print(F("$1"));
     }
 
     if (bitRead(ch1_step, 8 ) == 1) {
-      display.print("*");
+      display.print(F("$1"));
     }
     else {
-      display.print("_");
+      display.print(F("$1"));
     }
 
     if (bitRead(ch1_step, 7 ) == 1) {
-      display.print("*");
+      display.print(F("$1"));
     }
     else {
-      display.print("_");
+      display.print(F("$1"));
     }
 
     if (bitRead(ch1_step, 6 ) == 1) {
-      display.print("*");
+      display.print(F("$1"));
     }
     else {
-      display.print("_");
+      display.print(F("$1"));
     }
 
     if (bitRead(ch1_step, 5 ) == 1) {
-      display.print("*");
+      display.print(F("$1"));
     }
     else {
-      display.print("_");
+      display.print(F("$1"));
     }
 
     if (bitRead(ch1_step, 4 ) == 1) {
-      display.print("*");
+      display.print(F("$1"));
     }
     else {
-      display.print("_");
+      display.print(F("$1"));
     }
 
     if (bitRead(ch1_step, 3 ) == 1) {
-      display.print("*");
+      display.print(F("$1"));
     }
     else {
-      display.print("_");
+      display.print(F("$1"));
     }
 
     if (bitRead(ch1_step, 2 ) == 1) {
-      display.print("*");
+      display.print(F("$1"));
     }
     else {
-      display.print("_");
+      display.print(F("$1"));
     }
 
     if (bitRead(ch1_step, 1 ) == 1) {
-      display.print("*");
+      display.print(F("$1"));
     }
     else {
-      display.print("_");
+      display.print(F("$1"));
     }
 
     if (bitRead(ch1_step, 0 ) == 1) {
-      display.print("*");
+      display.print(F("$1"));
     }
     else {
-      display.print("_");
+      display.print(F("$1"));
     }
   }
 
   //CH2表示
   display.setCursor(0, 9);  // 文字の一番端の位置
-  display.print("CH2");
+  display.print(F("$1"));
 
   display.setCursor(30, 9);
   if (CH2_mute == 0) {
     if (bitRead(ch2_step, 15 ) == 1) {
-      display.print("*");
+      display.print(F("$1"));
     }
     else {
-      display.print("_");
+      display.print(F("$1"));
     }
 
     if (bitRead(ch2_step, 14 ) == 1) {
-      display.print("*");
+      display.print(F("$1"));
     }
     else {
-      display.print("_");
+      display.print(F("$1"));
     }
 
     if (bitRead(ch2_step, 13 ) == 1) {
-      display.print("*");
+      display.print(F("$1"));
     }
     else {
-      display.print("_");
+      display.print(F("$1"));
     }
 
     if (bitRead(ch2_step, 12 ) == 1) {
-      display.print("*");
+      display.print(F("$1"));
     }
     else {
-      display.print("_");
+      display.print(F("$1"));
     }
 
     if (bitRead(ch2_step, 11 ) == 1) {
-      display.print("*");
+      display.print(F("$1"));
     }
     else {
-      display.print("_");
+      display.print(F("$1"));
     }
 
     if (bitRead(ch2_step, 10 ) == 1) {
-      display.print("*");
+      display.print(F("$1"));
     }
     else {
-      display.print("_");
+      display.print(F("$1"));
     }
 
     if (bitRead(ch2_step, 9 ) == 1) {
-      display.print("*");
+      display.print(F("$1"));
     }
     else {
-      display.print("_");
+      display.print(F("$1"));
     }
 
     if (bitRead(ch2_step, 8 ) == 1) {
-      display.print("*");
+      display.print(F("$1"));
     }
     else {
-      display.print("_");
+      display.print(F("$1"));
     }
 
     if (bitRead(ch2_step, 7 ) == 1) {
-      display.print("*");
+      display.print(F("$1"));
     }
     else {
-      display.print("_");
+      display.print(F("$1"));
     }
 
     if (bitRead(ch2_step, 6 ) == 1) {
-      display.print("*");
+      display.print(F("$1"));
     }
     else {
-      display.print("_");
+      display.print(F("$1"));
     }
 
     if (bitRead(ch2_step, 5 ) == 1) {
-      display.print("*");
+      display.print(F("$1"));
     }
     else {
-      display.print("_");
+      display.print(F("$1"));
     }
 
     if (bitRead(ch2_step, 4 ) == 1) {
-      display.print("*");
+      display.print(F("$1"));
     }
     else {
-      display.print("_");
+      display.print(F("$1"));
     }
 
     if (bitRead(ch2_step, 3 ) == 1) {
-      display.print("*");
+      display.print(F("$1"));
     }
     else {
-      display.print("_");
+      display.print(F("$1"));
     }
 
     if (bitRead(ch2_step, 2 ) == 1) {
-      display.print("*");
+      display.print(F("$1"));
     }
     else {
-      display.print("_");
+      display.print(F("$1"));
     }
 
     if (bitRead(ch2_step, 1 ) == 1) {
-      display.print("*");
+      display.print(F("$1"));
     }
     else {
-      display.print("_");
+      display.print(F("$1"));
     }
     if (bitRead(ch2_step, 0 ) == 1) {
-      display.print("*");
+      display.print(F("$1"));
     }
     else {
-      display.print("_");
+      display.print(F("$1"));
     }
   }
   //CH3表示
   display.setCursor(0, 18);  // 文字の一番端の位置
-  display.print("CH3");
+  display.print(F("$1"));
 
   display.setCursor(30, 18);
   if (CH3_mute == 0) {
     if (bitRead(ch3_step, 15 ) == 1) {
-      display.print("*");
+      display.print(F("$1"));
     }
     else {
-      display.print("_");
+      display.print(F("$1"));
     }
 
     if (bitRead(ch3_step, 14 ) == 1) {
-      display.print("*");
+      display.print(F("$1"));
     }
     else {
-      display.print("_");
+      display.print(F("$1"));
     }
 
     if (bitRead(ch3_step, 13 ) == 1) {
-      display.print("*");
+      display.print(F("$1"));
     }
     else {
-      display.print("_");
+      display.print(F("$1"));
     }
 
     if (bitRead(ch3_step, 12 ) == 1) {
-      display.print("*");
+      display.print(F("$1"));
     }
     else {
-      display.print("_");
+      display.print(F("$1"));
     }
 
     if (bitRead(ch3_step, 11 ) == 1) {
-      display.print("*");
+      display.print(F("$1"));
     }
     else {
-      display.print("_");
+      display.print(F("$1"));
     }
 
     if (bitRead(ch3_step, 10 ) == 1) {
-      display.print("*");
+      display.print(F("$1"));
     }
     else {
-      display.print("_");
+      display.print(F("$1"));
     }
 
     if (bitRead(ch3_step, 9 ) == 1) {
-      display.print("*");
+      display.print(F("$1"));
     }
     else {
-      display.print("_");
+      display.print(F("$1"));
     }
 
     if (bitRead(ch3_step, 8 ) == 1) {
-      display.print("*");
+      display.print(F("$1"));
     }
     else {
-      display.print("_");
+      display.print(F("$1"));
     }
 
     if (bitRead(ch3_step, 7 ) == 1) {
-      display.print("*");
+      display.print(F("$1"));
     }
     else {
-      display.print("_");
+      display.print(F("$1"));
     }
 
     if (bitRead(ch3_step, 6 ) == 1) {
-      display.print("*");
+      display.print(F("$1"));
     }
     else {
-      display.print("_");
+      display.print(F("$1"));
     }
 
     if (bitRead(ch3_step, 5 ) == 1) {
-      display.print("*");
+      display.print(F("$1"));
     }
     else {
-      display.print("_");
+      display.print(F("$1"));
     }
 
     if (bitRead(ch3_step, 4 ) == 1) {
-      display.print("*");
+      display.print(F("$1"));
     }
     else {
-      display.print("_");
+      display.print(F("$1"));
     }
 
     if (bitRead(ch3_step, 3 ) == 1) {
-      display.print("*");
+      display.print(F("$1"));
     }
     else {
-      display.print("_");
+      display.print(F("$1"));
     }
 
     if (bitRead(ch3_step, 2 ) == 1) {
-      display.print("*");
+      display.print(F("$1"));
     }
     else {
-      display.print("_");
+      display.print(F("$1"));
     }
 
     if (bitRead(ch3_step, 1 ) == 1) {
-      display.print("*");
+      display.print(F("$1"));
     }
     else {
-      display.print("_");
+      display.print(F("$1"));
     }
     if (bitRead(ch3_step, 0 ) == 1) {
-      display.print("*");
+      display.print(F("$1"));
     }
     else {
-      display.print("_");
+      display.print(F("$1"));
     }
   }
 
   //CH4表示
   display.setCursor(0, 27);  // 文字の一番端の位置
-  display.print("CH4");
+  display.print(F("$1"));
 
   display.setCursor(30, 27);
   if (CH4_mute == 0) {
     if (bitRead(ch4_step, 15 ) == 1) {
-      display.print("*");
+      display.print(F("$1"));
     }
     else {
-      display.print("_");
+      display.print(F("$1"));
     }
 
     if (bitRead(ch4_step, 14 ) == 1) {
-      display.print("*");
+      display.print(F("$1"));
     }
     else {
-      display.print("_");
+      display.print(F("$1"));
     }
 
     if (bitRead(ch4_step, 13 ) == 1) {
-      display.print("*");
+      display.print(F("$1"));
     }
     else {
-      display.print("_");
+      display.print(F("$1"));
     }
 
     if (bitRead(ch4_step, 12 ) == 1) {
-      display.print("*");
+      display.print(F("$1"));
     }
     else {
-      display.print("_");
+      display.print(F("$1"));
     }
 
     if (bitRead(ch4_step, 11 ) == 1) {
-      display.print("*");
+      display.print(F("$1"));
     }
     else {
-      display.print("_");
+      display.print(F("$1"));
     }
 
     if (bitRead(ch4_step, 10 ) == 1) {
-      display.print("*");
+      display.print(F("$1"));
     }
     else {
-      display.print("_");
+      display.print(F("$1"));
     }
 
     if (bitRead(ch4_step, 9 ) == 1) {
-      display.print("*");
+      display.print(F("$1"));
     }
     else {
-      display.print("_");
+      display.print(F("$1"));
     }
 
     if (bitRead(ch4_step, 8 ) == 1) {
-      display.print("*");
+      display.print(F("$1"));
     }
     else {
-      display.print("_");
+      display.print(F("$1"));
     }
 
     if (bitRead(ch4_step, 7 ) == 1) {
-      display.print("*");
+      display.print(F("$1"));
     }
     else {
-      display.print("_");
+      display.print(F("$1"));
     }
 
     if (bitRead(ch4_step, 6 ) == 1) {
-      display.print("*");
+      display.print(F("$1"));
     }
     else {
-      display.print("_");
+      display.print(F("$1"));
     }
 
     if (bitRead(ch4_step, 5 ) == 1) {
-      display.print("*");
+      display.print(F("$1"));
     }
     else {
-      display.print("_");
+      display.print(F("$1"));
     }
 
     if (bitRead(ch4_step, 4 ) == 1) {
-      display.print("*");
+      display.print(F("$1"));
     }
     else {
-      display.print("_");
+      display.print(F("$1"));
     }
 
     if (bitRead(ch4_step, 3 ) == 1) {
-      display.print("*");
+      display.print(F("$1"));
     }
     else {
-      display.print("_");
+      display.print(F("$1"));
     }
 
     if (bitRead(ch4_step, 2 ) == 1) {
-      display.print("*");
+      display.print(F("$1"));
     }
     else {
-      display.print("_");
+      display.print(F("$1"));
     }
 
     if (bitRead(ch4_step, 1 ) == 1) {
-      display.print("*");
+      display.print(F("$1"));
     }
     else {
-      display.print("_");
+      display.print(F("$1"));
     }
     if (bitRead(ch4_step, 0 ) == 1) {
-      display.print("*");
+      display.print(F("$1"));
     }
     else {
-      display.print("_");
+      display.print(F("$1"));
     }
   }
 
   //CH5表示
   display.setCursor(0, 36);  // 文字の一番端の位置
-  display.print("CH5");
+  display.print(F("$1"));
 
   display.setCursor(30, 36);
   if (CH5_mute == 0) {
     if (bitRead(ch5_step, 15 ) == 1) {
-      display.print("*");
+      display.print(F("$1"));
     }
     else {
-      display.print("_");
+      display.print(F("$1"));
     }
 
     if (bitRead(ch5_step, 14 ) == 1) {
-      display.print("*");
+      display.print(F("$1"));
     }
     else {
-      display.print("_");
+      display.print(F("$1"));
     }
 
     if (bitRead(ch5_step, 13 ) == 1) {
-      display.print("*");
+      display.print(F("$1"));
     }
     else {
-      display.print("_");
+      display.print(F("$1"));
     }
 
     if (bitRead(ch5_step, 12 ) == 1) {
-      display.print("*");
+      display.print(F("$1"));
     }
     else {
-      display.print("_");
+      display.print(F("$1"));
     }
 
     if (bitRead(ch5_step, 11 ) == 1) {
-      display.print("*");
+      display.print(F("$1"));
     }
     else {
-      display.print("_");
+      display.print(F("$1"));
     }
 
     if (bitRead(ch5_step, 10 ) == 1) {
-      display.print("*");
+      display.print(F("$1"));
     }
     else {
-      display.print("_");
+      display.print(F("$1"));
     }
 
     if (bitRead(ch5_step, 9 ) == 1) {
-      display.print("*");
+      display.print(F("$1"));
     }
     else {
-      display.print("_");
+      display.print(F("$1"));
     }
 
     if (bitRead(ch5_step, 8 ) == 1) {
-      display.print("*");
+      display.print(F("$1"));
     }
     else {
-      display.print("_");
+      display.print(F("$1"));
     }
 
     if (bitRead(ch5_step, 7 ) == 1) {
-      display.print("*");
+      display.print(F("$1"));
     }
     else {
-      display.print("_");
+      display.print(F("$1"));
     }
 
     if (bitRead(ch5_step, 6 ) == 1) {
-      display.print("*");
+      display.print(F("$1"));
     }
     else {
-      display.print("_");
+      display.print(F("$1"));
     }
 
     if (bitRead(ch5_step, 5 ) == 1) {
-      display.print("*");
+      display.print(F("$1"));
     }
     else {
-      display.print("_");
+      display.print(F("$1"));
     }
 
     if (bitRead(ch5_step, 4 ) == 1) {
-      display.print("*");
+      display.print(F("$1"));
     }
     else {
-      display.print("_");
+      display.print(F("$1"));
     }
 
     if (bitRead(ch5_step, 3 ) == 1) {
-      display.print("*");
+      display.print(F("$1"));
     }
     else {
-      display.print("_");
+      display.print(F("$1"));
     }
 
     if (bitRead(ch5_step, 2 ) == 1) {
-      display.print("*");
+      display.print(F("$1"));
     }
     else {
-      display.print("_");
+      display.print(F("$1"));
     }
 
     if (bitRead(ch5_step, 1 ) == 1) {
-      display.print("*");
+      display.print(F("$1"));
     }
     else {
-      display.print("_");
+      display.print(F("$1"));
     }
     if (bitRead(ch5_step, 0 ) == 1) {
-      display.print("*");
+      display.print(F("$1"));
     }
     else {
-      display.print("_");
+      display.print(F("$1"));
     }
   }
 
   //CH6表示
   display.setCursor(0, 45);  // 文字の一番端の位置
-  display.print("CH6");
+  display.print(F("$1"));
 
   display.setCursor(30, 45);
   if (CH6_mute == 0) {
     if (bitRead(ch6_step, 15 ) == 1) {
-      display.print("*");
+      display.print(F("$1"));
     }
     else {
-      display.print("_");
+      display.print(F("$1"));
     }
 
     if (bitRead(ch6_step, 14 ) == 1) {
-      display.print("*");
+      display.print(F("$1"));
     }
     else {
-      display.print("_");
+      display.print(F("$1"));
     }
 
     if (bitRead(ch6_step, 13 ) == 1) {
-      display.print("*");
+      display.print(F("$1"));
     }
     else {
-      display.print("_");
+      display.print(F("$1"));
     }
 
     if (bitRead(ch6_step, 12 ) == 1) {
-      display.print("*");
+      display.print(F("$1"));
     }
     else {
-      display.print("_");
+      display.print(F("$1"));
     }
 
     if (bitRead(ch6_step, 11 ) == 1) {
-      display.print("*");
+      display.print(F("$1"));
     }
     else {
-      display.print("_");
+      display.print(F("$1"));
     }
 
     if (bitRead(ch6_step, 10 ) == 1) {
-      display.print("*");
+      display.print(F("$1"));
     }
     else {
-      display.print("_");
+      display.print(F("$1"));
     }
 
     if (bitRead(ch6_step, 9 ) == 1) {
-      display.print("*");
+      display.print(F("$1"));
     }
     else {
-      display.print("_");
+      display.print(F("$1"));
     }
 
     if (bitRead(ch6_step, 8 ) == 1) {
-      display.print("*");
+      display.print(F("$1"));
     }
     else {
-      display.print("_");
+      display.print(F("$1"));
     }
 
     if (bitRead(ch6_step, 7 ) == 1) {
-      display.print("*");
+      display.print(F("$1"));
     }
     else {
-      display.print("_");
+      display.print(F("$1"));
     }
 
     if (bitRead(ch6_step, 6 ) == 1) {
-      display.print("*");
+      display.print(F("$1"));
     }
     else {
-      display.print("_");
+      display.print(F("$1"));
     }
 
     if (bitRead(ch6_step, 5 ) == 1) {
-      display.print("*");
+      display.print(F("$1"));
     }
     else {
-      display.print("_");
+      display.print(F("$1"));
     }
 
     if (bitRead(ch6_step, 4 ) == 1) {
-      display.print("*");
+      display.print(F("$1"));
     }
     else {
-      display.print("_");
+      display.print(F("$1"));
     }
 
     if (bitRead(ch6_step, 3 ) == 1) {
-      display.print("*");
+      display.print(F("$1"));
     }
     else {
-      display.print("_");
+      display.print(F("$1"));
     }
 
     if (bitRead(ch6_step, 2 ) == 1) {
-      display.print("*");
+      display.print(F("$1"));
     }
     else {
-      display.print("_");
+      display.print(F("$1"));
     }
 
     if (bitRead(ch6_step, 1 ) == 1) {
-      display.print("*");
+      display.print(F("$1"));
     }
     else {
-      display.print("_");
+      display.print(F("$1"));
     }
     if (bitRead(ch6_step, 0 ) == 1) {
-      display.print("*");
+      display.print(F("$1"));
     }
     else {
-      display.print("_");
+      display.print(F("$1"));
     }
   }
 
@@ -1311,99 +1285,99 @@ void OLED_display() {
     display.setCursor(0, 54);  // 文字の一番端の位置
     if (enc == 97) {
       display.setTextColor(BLACK, WHITE); // (BLACK, WHITE)は出力する文字の色を反転
-      display.print("MNAL");
+      display.print(F("$1"));
     }
     else {
       display.setTextColor(WHITE);
-      display.print("MNAL");
+      display.print(F("$1"));
     }
 
     display.setCursor(48, 54);
 
     if (enc == 98) {
       display.setTextColor(BLACK, WHITE);
-      display.print("RESET");
+      display.print(F("$1"));
     }
     else {
       display.setTextColor(WHITE);
-      display.print("RESET");
+      display.print(F("$1"));
     }
 
     display.setCursor(102, 54);
 
     if (enc == 99) {
       display.setTextColor(BLACK, WHITE);
-      display.print("SAVE");
+      display.print(F("$1"));
     }
     else {
       display.setTextColor(WHITE);
-      display.print("SAVE");
+      display.print(F("$1"));
     }
 
     if (enc == 100) {
       display.setTextColor(BLACK, WHITE);
       display.setCursor(0, 0);
-      display.print("CH1");
+      display.print(F("$1"));
     }
     else {
       display.setTextColor(WHITE);
       display.setCursor(0, 0);
-      display.print("CH1");
+      display.print(F("$1"));
     }
 
     if (enc == 101) {
       display.setTextColor(BLACK, WHITE);
       display.setCursor(0, 9);
-      display.print("CH2");
+      display.print(F("$1"));
     }
     else {
       display.setTextColor(WHITE);
       display.setCursor(0, 9);
-      display.print("CH2");
+      display.print(F("$1"));
     }
 
     if (enc == 102) {
       display.setTextColor(BLACK, WHITE);
       display.setCursor(0, 18);
-      display.print("CH3");
+      display.print(F("$1"));
     }
     else {
       display.setTextColor(WHITE);
       display.setCursor(0, 18);
-      display.print("CH3");
+      display.print(F("$1"));
     }
 
     if (enc == 103) {
       display.setTextColor(BLACK, WHITE);
       display.setCursor(0, 27);
-      display.print("CH4");
+      display.print(F("$1"));
     }
     else {
       display.setTextColor(WHITE);
       display.setCursor(0, 27);
-      display.print("CH4");
+      display.print(F("$1"));
     }
 
     if (enc == 104) {
       display.setTextColor(BLACK, WHITE);
       display.setCursor(0, 36);
-      display.print("CH5");
+      display.print(F("$1"));
     }
     else {
       display.setTextColor(WHITE);
       display.setCursor(0, 36);
-      display.print("CH5");
+      display.print(F("$1"));
     }
 
     if (enc == 105) {
       display.setTextColor(BLACK, WHITE);
       display.setCursor(0, 45);
-      display.print("CH6");
+      display.print(F("$1"));
     }
     else {
       display.setTextColor(WHITE);
       display.setCursor(0, 45);
-      display.print("CH6");
+      display.print(F("$1"));
     }
 
   }
@@ -1414,34 +1388,34 @@ void OLED_display() {
     if (enc <= 3 ) {
       if (enc == 1) {
         display.setTextColor(BLACK, WHITE);
-        display.print("AUTO");
+        display.print(F("$1"));
       }
       else {
         display.setTextColor(WHITE);
-        display.print("AUTO");
+        display.print(F("$1"));
       }
 
       display.setTextColor(WHITE);
-      display.print("  ");
+      display.print(F("$1"));
 
       if (enc == 2) {
         display.setTextColor(BLACK, WHITE);
 
         switch (genre) {//プリセットの選択
           case 0:
-            display.print("TECHNO");//表示領域の都合上、6文字とする
+            display.print(F("$1"));//表示領域の都合上、6文字とする
             break;
 
           case 1:
-            display.print("DUBTCN");
+            display.print(F("$1"));
             break;
 
           case 2:
-            display.print("HOUSE ");
+            display.print(F("$1"));
             break;
 
           case 3:
-            display.print("HALF ");
+            display.print(F("$1"));
             break;
         }
 
@@ -1451,31 +1425,31 @@ void OLED_display() {
 
         switch (genre) {
           case 0:
-            display.print("TECHNO");
+            display.print(F("$1"));
             break;
 
           case 1:
-            display.print("DUBTCN");
+            display.print(F("$1"));
             break;
 
           case 2:
-            display.print("HOUSE ");
+            display.print(F("$1"));
             break;
         }
       }
 
       display.setTextColor(WHITE);
-      display.print("  ");
+      display.print(F("$1"));
 
       if (enc == 3) {//Fillinの選択
         display.setTextColor(BLACK, WHITE);
         switch (fillin) {
           case 0:
-            display.print("FilIN:N");
+            display.print(F("$1"));
             break;
 
           case 1:
-            display.print("FilIN:Y");
+            display.print(F("$1"));
             break;
         }
       }
@@ -1483,11 +1457,11 @@ void OLED_display() {
         display.setTextColor(WHITE);
         switch (fillin) {
           case 0:
-            display.print("FilIN:N");
+            display.print(F("$1"));
             break;
 
           case 1:
-            display.print("FilIN:Y");
+            display.print(F("$1"));
             break;
         }
       }
@@ -1499,122 +1473,122 @@ void OLED_display() {
       if (enc == 4) {//リピートの選択
         display.setCursor(0, 54);  // 文字の一番端の位置
         display.setTextColor(BLACK, WHITE);
-        display.print("REP:");
+        display.print(F("$1"));
         display.print(repeat_done + 1);
-        display.print("/");
+        display.print(F("$1"));
         if (repeat <= 3) {
           display.print(repeat_max);
         }
         else if (repeat >= 4) {
-          display.print("ET");
+          display.print(F("$1"));
         }
       }
 
       else {
         display.setCursor(0, 54);
         display.setTextColor(WHITE);
-        display.print("REP:");
+        display.print(F("$1"));
         display.print(repeat_done + 1);
-        display.print("/");
+        display.print(F("$1"));
         if (repeat <= 3) {
           display.print(repeat_max);
         }
         else if (repeat >= 4) {
-          display.print("ET");
+          display.print(F("$1"));
         }
       }
 
       if (enc == 5) {//SWの選択
         display.setTextColor(BLACK, WHITE);
         display.setCursor(70, 54);
-        display.print("SW:");
+        display.print(F("$1"));
         display.print(sw_done + 1);
-        display.print("/");
+        display.print(F("$1"));
         if (sw <= 3) {
           display.print(sw_max);
         }
         else if (sw >= 4) {
-          display.print("ET");
+          display.print(F("$1"));
         }
       }
       else {
         display.setTextColor(WHITE);
         display.setCursor(70, 54);
-        display.print("SW:");
+        display.print(F("$1"));
         display.print(sw_done + 1);
-        display.print("/");
+        display.print(F("$1"));
         if (sw <= 3) {
           display.print(sw_max);
         }
         else if (sw >= 4) {
-          display.print("ET");
+          display.print(F("$1"));
         }
       }
 
       if (enc == 6) {
         display.setTextColor(BLACK, WHITE);
         display.setCursor(0, 0);
-        display.print("CH1");
+        display.print(F("$1"));
       }
       else {
         display.setTextColor(WHITE);
         display.setCursor(0, 0);
-        display.print("CH1");
+        display.print(F("$1"));
       }
 
       if (enc == 7) {
         display.setTextColor(BLACK, WHITE);
         display.setCursor(0, 9);
-        display.print("CH2");
+        display.print(F("$1"));
       }
       else {
         display.setTextColor(WHITE);
         display.setCursor(0, 9);
-        display.print("CH2");
+        display.print(F("$1"));
       }
 
       if (enc == 8) {
         display.setTextColor(BLACK, WHITE);
         display.setCursor(0, 18);
-        display.print("CH3");
+        display.print(F("$1"));
       }
       else {
         display.setTextColor(WHITE);
         display.setCursor(0, 18);
-        display.print("CH3");
+        display.print(F("$1"));
       }
 
       if (enc == 9) {
         display.setTextColor(BLACK, WHITE);
         display.setCursor(0, 27);
-        display.print("CH4");
+        display.print(F("$1"));
       }
       else {
         display.setTextColor(WHITE);
         display.setCursor(0, 27);
-        display.print("CH4");
+        display.print(F("$1"));
       }
 
       if (enc == 10) {
         display.setTextColor(BLACK, WHITE);
         display.setCursor(0, 36);
-        display.print("CH5");
+        display.print(F("$1"));
       }
       else {
         display.setTextColor(WHITE);
         display.setCursor(0, 36);
-        display.print("CH5");
+        display.print(F("$1"));
       }
 
       if (enc == 11) {
         display.setTextColor(BLACK, WHITE);
         display.setCursor(0, 45);
-        display.print("CH6");
+        display.print(F("$1"));
       }
       else {
         display.setTextColor(WHITE);
         display.setCursor(0, 45);
-        display.print("CH6");
+        display.print(F("$1"));
       }
 
     }
