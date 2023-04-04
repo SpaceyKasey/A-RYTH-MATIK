@@ -18,6 +18,8 @@ String getConfiguredMode();
 void Save_EEProm();
 void UpdateMenu(EncoderDirection direction);
 
+bool debounceSetup = false;
+
 
 
 void setup() {
@@ -35,21 +37,57 @@ void setup() {
     pinMode(ENCODER_A_PIN, INPUT_PULLUP); //ENCODER A?
     pinMode(ENCODER_B_PIN, INPUT_PULLUP); //ENCODER B?
 
-    configuredMode = static_cast<Mode>(EEPROM.read(EEPROM_TYPE));
     invertEncoder =  static_cast<bool>(EEPROM.read(EEPROM_INVERT));
 
-    if(digitalRead(BUTTON_PIN) == true){
-      setup_mode = true;
-              // OLED setting
+    int modeSet = EEPROM.read(EEPROM_TYPE);
+    if(modeSet < 0 || modeSet > static_cast<int>(Mode::Last)){
+      modeSet = 0;
+    }
+    configuredMode = static_cast<Mode>(modeSet);
+
       delay(1000); // Screen needs a sec to initialize
       display.begin();
       display.setTextSize(1);
       display.setTextColor(WHITE);
-      OLED_display();
+      
+    if(digitalRead(BUTTON_PIN) == false){
+      setup_mode = true;
+              // OLED setting
 
-      enc_timer = 0;
+      OLED_display();
+      debounceSetup = true;
     }
+    else {
+    //Switch to correct module here
+
+    switch (configuredMode){
+      case Mode::Euclid:
+      OLED_display_Euclid();
+      break;
+      case Mode::Gate:
+      OLED_display_Gate();
+      break;
+      }
+    }
+
+  pinMode(5, OUTPUT); //CH1
+  pinMode(6, OUTPUT); //CH2
+  pinMode(7, OUTPUT); //CH3
+  pinMode(8, OUTPUT); //CH4
+  pinMode(9, OUTPUT); //CH5
+  pinMode(10, OUTPUT); //CH6
+  pinMode(13, INPUT_PULLUP); //CLOCK
+  pinMode(14, OUTPUT); //CH1 LED (DIGITAL)
+  pinMode(15, OUTPUT); //CH2 LED (DIGITAL)
+  pinMode(16, OUTPUT); //CH3 LED (DIGITAL)
+  pinMode(17, OUTPUT); //CH6 LED (DIGITAL)
+  pinMode(0, OUTPUT); //CH4 LED (DIGITAL)
+  pinMode(1, OUTPUT); //CH5 LED (DIGITAL)
+  pinMode(4, OUTPUT); //CLK LED (DIGITAL)
+
+  enc_timer = 0;
 }
+
 
 void loop() {
 
@@ -58,15 +96,15 @@ void loop() {
 
     switch (configuredMode){
       case Mode::Euclid:
-        EuclidSetup();
+        //EuclidSetup();
         EuclidLoop();
       break;
       case Mode::Gate:
-        GateSetup();
+        //GateSetup();
         GateLoop();
       break;
     }
-
+return;
   }
 
   //-----------------push button----------------------
@@ -75,20 +113,26 @@ void loop() {
   if ((digitalRead(12) == 0 ) && ( sw_timer + 300 <= millis() )) { //push button on ,Logic inversion , sw_timer is countermeasure of chattering
     sw_timer = millis();
     sw = 0;
-    Serial.print(F("button"));
   }
-  if (sw == 0) {
+  else{
+    debounceSetup = false;
+  }
+
+
+  if (sw == 0 && debounceSetup == false) {
     HandleKeypress();
   }
 
+
+  //Check if the encoder has been turned
 
   //-----------------Rotary encoder read----------------------
   newPosition = myEnc.read()/ENCODER_COUNT_PER_CLICK;
   if ( newPosition < oldPosition && enc_timer + 200 < millis()) { //turn left
     enc_timer = millis();
     oldPosition = newPosition;
-    encD = 1;
-    Serial.print(F("<<< encoder <<<"));
+    encD = 1; 
+    //Serial.print(F("<<< encoder <<<"));
   } else {
     encD = 0;
   }
@@ -97,7 +141,7 @@ void loop() {
     enc_timer = millis();
     oldPosition = newPosition;
     encU = 1;
-    Serial.print(F(">>> encoder >>>"));
+    //Serial.print(F(">>> encoder >>>"));
   } else {
     encU = 0;
   }
@@ -133,34 +177,20 @@ void HandleKeypress(){
 }
 
 void UpdateMenu(EncoderDirection direction){
+  
   if(direction == EncoderDirection::Up){
-    configuredMode = static_cast<Mode>(static_cast<int>(configuredMode) + 1);
-    if(configuredMode == Mode::Last){
-      configuredMode = static_cast<Mode>(static_cast<int>(0));
+    menuState = static_cast<MenuSelection>(static_cast<int>(menuState) + 1);
+    if(menuState == MenuSelection::Last){
+      menuState = static_cast<MenuSelection>(static_cast<int>(0));
     }
   }else{
-    if(configuredMode == static_cast<Mode>(0)){
-      configuredMode = Mode::Last;
+    if(menuState == static_cast<MenuSelection>(0)){
+      menuState = MenuSelection::Last;
     }
-    configuredMode = static_cast<Mode>(static_cast<int>(configuredMode) - 1);
+    menuState = static_cast<MenuSelection>(static_cast<int>(menuState) - 1);
   }
 }
 
-void Save_EEProm(){
-  EEPROM.write(EEPROM_TYPE, static_cast<int>(configuredMode));
-  EEPROM.write(EEPROM_INVERT, invertEncoder);
-}
-
-String getConfiguredMode(){
-  switch (configuredMode){
-    case Mode::Euclid:
-      return F("Euclid");
-    break;
-    case Mode::Gate:
-      return F("Gate");
-    break;
-  }
-}
 
 
 
@@ -172,7 +202,15 @@ void OLED_display() {
   display.print(F("ARYTHMATIK 1.0 SETUP"));
   display.setCursor(0, 9);
   display.print(F("MODE: "));
-  display.print(getConfiguredMode());
+
+    switch (configuredMode){
+    case Mode::Euclid:
+      display.print( F("Euclid"));
+    break;
+    case Mode::Gate:
+      display.print(F("Gate"));
+    break;
+  }
   display.setCursor(0, 18);
   display.print(F("INVERT ENCODER: "));
   display.print(invertEncoder ? F("YES") : F("NO"));
