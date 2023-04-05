@@ -10,3 +10,6 @@ sym-lib-table
 *.dcm
 *.bck
 *-backups
+build/
+.vscode/
+

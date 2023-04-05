@@ -3,7 +3,7 @@
 //EEPROM
 #include <EEPROM.h>
 
-#include "Shared.h"
+#include "Globals.h"
 
 void OLED_display_Gate();
 void save_data();
@@ -16,29 +16,7 @@ byte step_count = 0; //clock in毎に1繰り上がり。17になると1に戻る
 byte clock_in = 0 ; //外部クロックの入力状態。H=1,L=0
 byte old_clock_in = 0 ; //0→1を認識するための変数
 
-unsigned int ch1_step = 0x8888; //テスト用
-byte CH1_output = 0 ;
-byte CH1_mute = 0 ;//0=ミュートしない、1=ミュートする
 
-unsigned int ch2_step = 0x0808; //テスト用
-byte CH2_output = 0 ;
-byte CH2_mute = 0 ;//0=ミュートしない、1=ミュートする
-
-unsigned int ch3_step = 0xCCCC; //テスト用
-byte CH3_output = 0 ;
-byte CH3_mute = 0 ;//0=ミュートしない、1=ミュートする
-
-unsigned int ch4_step = 0x2222; //テスト用
-byte CH4_output = 0 ;
-byte CH4_mute = 0 ;//0=ミュートしない、1=ミュートする
-
-unsigned int ch5_step = 0xFFFF; //テスト用
-byte CH5_output = 0 ;
-byte CH5_mute = 0 ;//0=ミュートしない、1=ミュートする
-
-unsigned int ch6_step = 0x0000; //テスト用
-byte CH6_output = 0 ;
-byte CH6_mute = 0 ;//0=ミュートしない、1=ミュートする
 
 
 byte enc = 96; //選択中のエンコーダ。初回起動時はMANUAL表示
@@ -189,45 +167,15 @@ const static word bnk4_ptn[8][12]PROGMEM = {
   }
 };
 
-void GateSetup() {
-
-
-  delay(1000); // Screen needs a sec to initialize
-
-  // ディスプレイの初期化
-  display.begin();
-
-  //pin mode setting
-  pinMode(11, INPUT_PULLUP); //RST
-  pinMode(12, INPUT_PULLUP); //BUTTON
-
-  pinMode(5, OUTPUT); //CH1
-  pinMode(6, OUTPUT); //CH2
-  pinMode(7, OUTPUT); //CH3
-  pinMode(8, OUTPUT); //CH4
-  pinMode(9, OUTPUT); //CH5
-  pinMode(10, OUTPUT); //CH6
-  pinMode(14, OUTPUT); //CH1 LED (DIGITAL)
-  pinMode(15, OUTPUT); //CH2 LED (DIGITAL)
-  pinMode(16, OUTPUT); //CH3 LED (DIGITAL)
-  pinMode(17, OUTPUT); //CH? LED (DIGITAL)
-  pinMode(0, OUTPUT); //CH? LED (DIGITAL)
-  pinMode(1, OUTPUT); //CH? LED (DIGITAL)
-  pinMode(13, INPUT); //Trigger
-
-  //保存データの読み出し
-  ch1_step = EEPROM.read(1) * 256 + EEPROM.read(2);
-  ch2_step = EEPROM.read(3) * 256 + EEPROM.read(4);
-  ch3_step = EEPROM.read(5) * 256 + EEPROM.read(6);
-  ch4_step = EEPROM.read(7) * 256 + EEPROM.read(8);
-  ch5_step = EEPROM.read(9) * 256 + EEPROM.read(10);
-  ch6_step = EEPROM.read(11) * 256 + EEPROM.read(12);
-
-  //開発用通信設定
-  //  Serial.begin(9600);
-
-  OLED_display_Gate();
+void GateSetup(){
+          ch1_step = EEPROM.read(1) * 256 + EEPROM.read(2);
+        ch2_step = EEPROM.read(3) * 256 + EEPROM.read(4);
+        ch3_step = EEPROM.read(5) * 256 + EEPROM.read(6);
+        ch4_step = EEPROM.read(7) * 256 + EEPROM.read(8);
+        ch5_step = EEPROM.read(9) * 256 + EEPROM.read(10);
+        ch6_step = EEPROM.read(11) * 256 + EEPROM.read(12);
 }
+
 
 void GateLoop() {
 
